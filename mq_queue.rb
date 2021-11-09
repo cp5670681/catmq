@@ -17,7 +17,7 @@ class MqQueue
     while true
       random_client = self.clients.sample
       if random_client
-        random_client.puts(self.pop)
+        random_client.write(self.pop)
       else
         break
       end

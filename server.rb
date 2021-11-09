@@ -3,6 +3,7 @@ require 'json'
 require './mq_queue'
 require './class_ext'
 require './exchange'
+require 'lightio'
 
 
 class Server
@@ -28,6 +29,7 @@ class Server
     end
     router 'create_exchange' do |client, params|
       Exchange.new(params['type'], params['name'])
+      p '创建交换机成功'
     end
     router 'bind_exchange' do |client, params|
       client.exchange = Exchange.exchange(params['name'])
@@ -41,38 +43,40 @@ class Server
     @routers[key] = block
   end
 
-  # 从客户端接收消息
-  def receive_from_client(client)
-    loop do
-      begin
-        res = client.gets
-        unless res
-          p "#{client}已断开"
-          client.close
-          break
-        end
-        res = JSON.parse(res)
-        p res
-        params = res['params']
-        @routers[res['type']]&.call(client, params)
-      rescue => e
-        p '连接异常'
-        p e
-        p e.backtrace
-        sleep 5
-      end
-    end
+  def receive_from_client(socket)
+    len = socket.readpartial(5).to_i
+    data = socket.readpartial(len)
+    res = JSON.parse(data)
+    p res
+    params = res['params']
+    @routers[res['type']]&.call(socket, params)
+  rescue EOFError, Errno::ECONNRESET
+    _, port, host = socket.peeraddr
+    puts "*** #{host}:#{port} disconnected"
+    socket.close
+    raise
+  rescue => e
+    p e
+    puts e.backtrace
   end
 
   def run
     bind_router
-    server = TCPServer.open(@port)
+    # server = TCPServer.open(@port)
+    server = LightIO::TCPServer.new('localhost', 2000)
     puts "start server on port #{@port}"
     # 接收客户端连接
     loop do
-      client = server.accept
-      Thread.new do
-        receive_from_client(client)
+      socket = server.accept
+      _, port, host = socket.peeraddr
+      puts "accept connection from #{host}:#{port}"
+      # Thread.new do
+      #   receive_from_client(client)
+      # end
+      LightIO::Beam.new(socket) do |socket|
+        while true
+          receive_from_client(socket)
+        end
       end
     end
   end

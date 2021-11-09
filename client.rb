@@ -1,20 +1,21 @@
 require 'socket'
 require 'json'
+require 'lightio'
 
 class Client
   def initialize(hostname = 'localhost', port = 2000)
-    @client = TCPSocket.open(hostname, port)
+    @socket = LightIO::TCPSocket.open(hostname, port)
   end
 
   # 客户端关闭连接
   def close
-    @client.close
+    @socket.close
     # 把连接绑定的队列和连接解绑
-    if self.queues
-      self.queues.each do |queue|
-        queue.clients.delete(self)
-      end
-    end
+    # if self.queues
+    #   self.queues.each do |queue|
+    #     queue.clients.delete(self)
+    #   end
+    # end
   end
 
   def publish(routing_key, message)
@@ -69,18 +70,24 @@ class Client
       }
     }
     self._send(data.to_json)
-    loop do
-      line = @client.gets
-      unless line
-        p '从服务器断开连接'
-        break
-      end
-      p "接收消息#{line}"
+    while true
+      echo
     end
   end
 
+  def echo
+    data = @socket.readpartial(4096)
+    p data
+  rescue EOFError
+    puts "client eof"
+    @socket.close
+    retry
+    # raise
+  end
+
   def _send(message)
-    @client.puts(message)
+    len = message.length
+    @socket.write("#{'%05d' % len}#{message}")
   end
 
 end
