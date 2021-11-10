@@ -35,6 +35,7 @@ class Server
       client.exchange = Exchange.exchange(params['name'])
     end
     router 'exchange_bind_queue' do |client, params|
+      p 'exchange_bind_queue'
       Exchange.exchange(params['exchange_name']).bind(MqQueue.queue(params['queue_name']), bind_key: params['binding_key'])
     end
   end
@@ -53,6 +54,11 @@ class Server
   rescue EOFError, Errno::ECONNRESET
     _, port, host = socket.peeraddr
     puts "*** #{host}:#{port} disconnected"
+    print_status
+    # 队列绑定的消息者解绑
+    socket.queues.each do |queue|
+      queue.clients.remove(socket)
+    end
     socket.close
     raise
   rescue => e
@@ -60,11 +66,18 @@ class Server
     puts e.backtrace
   end
 
+  def print_status
+    p '=======exchanges'
+    p Exchange.exchanges
+
+  end
+
   def run
     bind_router
     # server = TCPServer.open(@port)
     server = LightIO::TCPServer.new('localhost', 2000)
     puts "start server on port #{@port}"
+    print_status
     # 接收客户端连接
     loop do
       socket = server.accept
@@ -83,17 +96,3 @@ class Server
 end
 
 Server.new.run
-
-
-
-
-
-
-
-
-
-
-
-
-
-

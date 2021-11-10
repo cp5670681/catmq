@@ -81,8 +81,8 @@ class Client
   rescue EOFError
     puts "client eof"
     @socket.close
-    retry
-    # raise
+    # retry
+    raise
   end
 
   def _send(message)
