@@ -86,8 +86,8 @@ class Client
   end
 
   def _send(message)
-    len = message.length
-    @socket.write("#{'%05d' % len}#{message}")
+    @socket.write(message)
+    @socket.write("\n\n")
   end
 
 end

@@ -49,12 +49,19 @@ class Server
 
   end
 
+  # 由于tcp的特性，接收的数据可能不完整：或者是一条消息只取到前面部分，或者是一次取到好几条消息的合并
+  # 利用生成器模式，每次yield一个完整的消息出去
+  # 外部用块遍历，每次得到的就是一个完整的消息了
   def output_res(socket)
+    buf = ''
+    split = "\n\n"
     while true
-      len = socket.readpartial(5).to_i
-      data = socket.readpartial(len)
-      res = JSON.parse(data)
-      yield res
+      while index = buf.index(split)
+        yield JSON.parse(buf[0...index])
+        buf = buf[index + split.length...].to_s
+      end
+      chunk = socket.readpartial(1024)
+      buf += chunk
     end
   end
 
