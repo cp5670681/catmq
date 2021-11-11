@@ -4,7 +4,7 @@ require 'lightio'
 
 class Client
   def initialize(hostname = 'localhost', port = 2000)
-    @socket = LightIO::TCPSocket.open(hostname, port)
+    @socket = TCPSocket.open(hostname, port)
   end
 
   # 客户端关闭连接

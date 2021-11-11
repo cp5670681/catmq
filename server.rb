@@ -5,7 +5,6 @@ require './class_ext'
 require './exchange'
 require 'lightio'
 
-
 class Server
   def initialize(port: 2000)
     @port = port
@@ -44,13 +43,26 @@ class Server
     @routers[key] = block
   end
 
+  def print_status
+    p '=======exchanges'
+    p Exchange.exchanges
+
+  end
+
+  def output_res(socket)
+    while true
+      len = socket.readpartial(5).to_i
+      data = socket.readpartial(len)
+      res = JSON.parse(data)
+      yield res
+    end
+  end
+
   def receive_from_client(socket)
-    len = socket.readpartial(5).to_i
-    data = socket.readpartial(len)
-    res = JSON.parse(data)
-    p res
-    params = res['params']
-    @routers[res['type']]&.call(socket, params)
+    output_res(socket) do |res|
+      params = res['params']
+      @routers[res['type']]&.call(socket, params)
+    end
   rescue EOFError, Errno::ECONNRESET
     _, port, host = socket.peeraddr
     puts "*** #{host}:#{port} disconnected"
@@ -66,12 +78,6 @@ class Server
     puts e.backtrace
   end
 
-  def print_status
-    p '=======exchanges'
-    p Exchange.exchanges
-
-  end
-
   def run
     bind_router
     # server = TCPServer.open(@port)
@@ -79,7 +85,7 @@ class Server
     puts "start server on port #{@port}"
     print_status
     # 接收客户端连接
-    loop do
+    while true
       socket = server.accept
       _, port, host = socket.peeraddr
       puts "accept connection from #{host}:#{port}"
@@ -87,9 +93,7 @@ class Server
       #   receive_from_client(client)
       # end
       LightIO::Beam.new(socket) do |socket|
-        while true
-          receive_from_client(socket)
-        end
+        receive_from_client(socket)
       end
     end
   end
