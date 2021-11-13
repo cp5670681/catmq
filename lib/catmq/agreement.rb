@@ -11,7 +11,8 @@ module Catmq
 
     def send_message(payload, router: '')
       data = {
-        uuid: ::UUID.new.generate,
+        # uuid有bug，偶尔会报错，转而使用时间戳
+        uuid: (::UUID.new.generate rescue Time.now.to_f.to_s),
         router: router,
         body: payload
       }.to_json
