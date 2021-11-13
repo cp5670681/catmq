@@ -14,27 +14,27 @@ module Catmq
 
     # 绑定路由
     def bind_router
-      router 'publish' do |client, params|
-        queues = client.exchange.find_clients(params['routing_key'])
+      router 'publish' do |socket, params|
+        queues = socket.exchange.find_clients(params['routing_key'])
         queues.each do |queue|
           queue.push(params['message'])
         end
       end
-      router 'bind_queue' do |client, params|
+      router 'bind_queue' do |socket, params|
         p 'bind_queue'
         queue = Catmq::Queue.queue(params['queue_name'])
-        queue.clients << client
-        client.queues << queue
+        queue.clients << socket
+        socket.queues << queue
         queue.send_to_consumer
       end
-      router 'create_exchange' do |client, params|
+      router 'create_exchange' do |socket, params|
         Exchange.new(params['type'], params['name'])
         p '创建交换机成功'
       end
-      router 'bind_exchange' do |client, params|
-        client.exchange = Exchange.exchange(params['name'])
+      router 'bind_exchange' do |socket, params|
+        socket.exchange = Exchange.exchange(params['name'])
       end
-      router 'exchange_bind_queue' do |client, params|
+      router 'exchange_bind_queue' do |socket, params|
         p 'exchange_bind_queue'
         Exchange.exchange(params['exchange_name']).bind(Catmq::Queue.queue(params['queue_name']), bind_key: params['binding_key'])
       end
@@ -53,8 +53,8 @@ module Catmq
     def receive_from_client(socket)
       ::Catmq::Agreement.new(socket).receive do |response|
         res = JSON.parse(response)
-        params = res['params']
-        @routers[res['type']]&.call(socket, params)
+        params = res['body']
+        @routers[res['router']]&.call(socket, params)
       end
     rescue EOFError, Errno::ECONNRESET
       # _, port, host = socket.peeraddr

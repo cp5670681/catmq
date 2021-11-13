@@ -8,8 +8,13 @@ GEM
   specs:
     lightio (0.4.4)
       nio4r (~> 2.2)
+    macaddr (1.7.2)
+      systemu (~> 2.6.5)
     nio4r (2.5.8)
     rake (10.5.0)
+    systemu (2.6.5)
+    uuid (2.3.9)
+      macaddr (~> 1.0)
 
 PLATFORMS
   ruby
@@ -19,6 +24,7 @@ DEPENDENCIES
   catmq!
   lightio
   rake (~> 10.0)
+  uuid
 
 BUNDLED WITH
    1.17.3

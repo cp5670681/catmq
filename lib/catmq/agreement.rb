@@ -1,3 +1,5 @@
+require 'uuid'
+
 module Catmq
   class Agreement
     # 两条消息之间的分隔符
@@ -7,8 +9,13 @@ module Catmq
       @socket = socket
     end
 
-    def send(payload)
-      @socket.write("#{payload}#{SPLIT}")
+    def send_message(payload, router: '')
+      data = {
+        uuid: ::UUID.new.generate,
+        router: router,
+        body: payload
+      }.to_json
+      @socket.write("#{data}#{SPLIT}")
       'ok'
     rescue Errno::EPIPE, IOError
       # todo: 消息可能会丢失

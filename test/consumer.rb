@@ -4,7 +4,7 @@ require 'catmq'
 
 c = Catmq::Client.new
 c.bind_queue('queue1') do |res|
-  p res
+  puts res
 end
 c.close
 

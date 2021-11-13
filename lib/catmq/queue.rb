@@ -1,14 +1,24 @@
 module Catmq
   class Queue
     attr_accessor :name, :queue, :clients
+
+    @queues ||= {}
+    class << self
+      attr_accessor :queues
+      def queue(name)
+        queues[name] || self.new(name)
+      end
+    end
+
     def initialize(name)
+      # 创建相同的队列时，返回之前的队列
+      return self.class.queues[name] if self.class.queues[name]
       self.name = name
       self.queue = ::Queue.new
       # 当前队列连接了哪些客户端
       self.clients = []
       # 记录队列名和队列的键值对关系
-      @@queues ||= {}
-      @@queues[name] = self
+      self.class.queues[name] = self
     end
 
     # 不停发送消息给随机一个客户端，直到队列为空
@@ -18,8 +28,7 @@ module Catmq
       while true
         random_client = self.clients.sample
         if random_client
-          ::Catmq::Agreement.new(random_client).send(self.pop)
-          # random_client.write(self.pop)
+          ::Catmq::Agreement.new(random_client).send_message(self.pop)
         else
           break
         end
@@ -43,11 +52,5 @@ module Catmq
       obj
     end
 
-    def self.queue(name)
-      @@queues ||= {}
-      r = @@queues[name] || self.new(name)
-      p "queue:#{r}"
-      r
-    end
   end
 end

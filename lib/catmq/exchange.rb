@@ -1,12 +1,23 @@
 module Catmq
   class Exchange
+    @exchanges ||= {}
+    class << self
+      attr_accessor :exchanges
+      def exchange(name)
+        r = exchanges[name]
+        raise '无此交换机' unless r
+        r
+      end
+    end
+
     def initialize(type, name)
+      # 创建相同的交换机时，返回之前的交换机
+      return self.class.exchanges[name] if self.class.exchanges[name]
       @type = type
       # {bind_key: [queue1, queue2]}
       @queues = {}
       # 记录交换机名和交换机的键值对关系
-      @@exchanges ||= {}
-      @@exchanges[name] = self
+      self.class.exchanges[name] = self
     end
 
     # 绑定队列
@@ -30,15 +41,5 @@ module Catmq
       end
     end
 
-    def self.exchange(name)
-      r = exchanges[name]
-      raise '无此交换机' unless r
-      p "exchange:#{r}"
-      r
-    end
-
-    def self.exchanges
-      @@exchanges ||= {}
-    end
   end
 end

@@ -21,63 +21,48 @@ module Catmq
 
     def publish(routing_key, message)
       data = {
-        type: 'publish',
-        params: {
-          routing_key: routing_key,
-          message: message
-        }
+        routing_key: routing_key,
+        message: message
       }
-      self._send(data.to_json)
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'publish')
     end
 
     def create_exchange(type, name)
       data = {
-        type: 'create_exchange',
-        params: {
-          type: type,
-          name: name
-        }
+        type: type,
+        name: name
       }
-      self._send(data.to_json)
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'create_exchange')
     end
 
     def bind_exchange(name)
       data = {
-        type: 'bind_exchange',
-        params: {
-          name: name
-        }
+        name: name
       }
-      self._send(data.to_json)
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'bind_exchange')
     end
 
     def exchange_bind_queue(exchange_name, queue_name, binding_key)
       data = {
-        type: 'exchange_bind_queue',
-        params: {
-          exchange_name: exchange_name,
-          queue_name: queue_name,
-          binding_key: binding_key
-        }
+        exchange_name: exchange_name,
+        queue_name: queue_name,
+        binding_key: binding_key
       }
-      self._send(data.to_json)
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'exchange_bind_queue')
     end
 
     def bind_queue(queue_name, &block)
       data = {
-        type: 'bind_queue',
-        params: {
-          queue_name: queue_name
-        }
+        queue_name: queue_name
       }
-      self._send(data.to_json)
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'bind_queue')
       ::Catmq::Agreement.new(@socket).receive do |res|
         block.call(res)
       end
     end
 
     def _send(message)
-      ::Catmq::Agreement.new(@socket).send(message)
+      ::Catmq::Agreement.new(@socket).send_message(message)
     end
 
   end
