@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    catmq (0.0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    lightio (0.4.4)
+      nio4r (~> 2.2)
+    nio4r (2.5.8)
+    rake (10.5.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.17)
+  catmq!
+  lightio
+  rake (~> 10.0)
+
+BUNDLED WITH
+   1.17.3
