@@ -30,7 +30,7 @@ module Catmq
       while true
         while index = buf.index(SPLIT)
           yield buf[0...index]
-          buf = buf[index + SPLIT.length...].to_s
+          buf = buf[index + SPLIT.length..-1].to_s
         end
         chunk = @socket.readpartial(1024)
         buf += chunk
