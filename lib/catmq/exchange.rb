@@ -6,7 +6,6 @@ module Catmq
       @queues = {}
       # 记录交换机名和交换机的键值对关系
       @@exchanges ||= {}
-      raise "已存在交换机#{name}，无法创建" if @@exchanges[name]
       @@exchanges[name] = self
     end
 

@@ -18,7 +18,8 @@ module Catmq
       while true
         random_client = self.clients.sample
         if random_client
-          random_client.write(self.pop)
+          ::Catmq::Agreement.new(random_client).send(self.pop)
+          # random_client.write(self.pop)
         else
           break
         end

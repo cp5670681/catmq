@@ -3,6 +3,8 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'catmq'
 
 c = Catmq::Client.new
-c.bind_queue('queue1')
+c.bind_queue('queue1') do |res|
+  p res
+end
 c.close
 

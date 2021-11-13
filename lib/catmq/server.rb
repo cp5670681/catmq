@@ -50,34 +50,19 @@ module Catmq
 
     end
 
-    # 由于tcp的特性，接收的数据可能不完整：或者是一条消息只取到前面部分，或者是一次取到好几条消息的合并
-    # 利用生成器模式，每次yield一个完整的消息出去
-    # 外部用块遍历，每次得到的就是一个完整的消息了
-    def output_res(socket)
-      buf = ''
-      split = "\n\n"
-      while true
-        while index = buf.index(split)
-          yield JSON.parse(buf[0...index])
-          buf = buf[index + split.length...].to_s
-        end
-        chunk = socket.readpartial(1024)
-        buf += chunk
-      end
-    end
-
     def receive_from_client(socket)
-      output_res(socket) do |res|
+      ::Catmq::Agreement.new(socket).receive do |response|
+        res = JSON.parse(response)
         params = res['params']
         @routers[res['type']]&.call(socket, params)
       end
     rescue EOFError, Errno::ECONNRESET
-      _, port, host = socket.peeraddr
-      puts "*** #{host}:#{port} disconnected"
+      # _, port, host = socket.peeraddr
+      puts "*** client disconnected"
       print_status
       # 队列绑定的消息者解绑
       socket.queues.each do |queue|
-        queue.clients.remove(socket)
+        queue.clients - [socket]
       end
       socket.close
       raise
@@ -88,7 +73,6 @@ module Catmq
 
     def run
       bind_router
-      # server = TCPServer.open(@port)
       server = LightIO::TCPServer.new('localhost', 2000)
       puts "start server on port #{@port}"
       print_status
@@ -102,6 +86,9 @@ module Catmq
         # end
         LightIO::Beam.new(socket) do |socket|
           receive_from_client(socket)
+        rescue => e
+          p e
+          puts e.backtrace
         end
       end
     end

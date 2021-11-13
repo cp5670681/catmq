@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["cp5670681"]
   spec.email         = ["cp5670681@outlook.com"]
 
-  # spec.summary       = %q{summary}
+  spec.summary       = %q{summary}
   # spec.description   = %q{description}
   spec.homepage      = "https://github.com/cp5670681/catmq"
   # spec.license       = "MIT"

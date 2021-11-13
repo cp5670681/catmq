@@ -63,7 +63,7 @@ module Catmq
       self._send(data.to_json)
     end
 
-    def bind_queue(queue_name)
+    def bind_queue(queue_name, &block)
       data = {
         type: 'bind_queue',
         params: {
@@ -71,24 +71,13 @@ module Catmq
         }
       }
       self._send(data.to_json)
-      while true
-        echo
+      ::Catmq::Agreement.new(@socket).receive do |res|
+        block.call(res)
       end
     end
 
-    def echo
-      data = @socket.readpartial(4096)
-      p data
-    rescue EOFError
-      puts "client eof"
-      @socket.close
-      # retry
-      raise
-    end
-
     def _send(message)
-      @socket.write(message)
-      @socket.write("\n\n")
+      ::Catmq::Agreement.new(@socket).send(message)
     end
 
   end
