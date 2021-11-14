@@ -9,6 +9,7 @@ module Catmq
       @socket = socket
     end
 
+    # 生产者发消息
     # @param [Integer] ttl 过期时间，单位毫秒
     def send_message(payload, router: '', ttl: nil)
       data = {
@@ -18,9 +19,13 @@ module Catmq
         router: router,
         body: payload,
         ttl: ttl
-      }.to_json
-      @socket.write("#{data}#{SPLIT}")
-      'ok'
+      }
+      self.send_original(data)
+    end
+
+    # 发原始消息，用于服务器发消息给消息者
+    def send_original(payload)
+      @socket.write("#{payload.to_json}#{SPLIT}")
     rescue Errno::EPIPE, IOError
       # todo: 消息可能会丢失
       @socket.close
