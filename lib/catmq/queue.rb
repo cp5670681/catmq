@@ -39,7 +39,8 @@ module Catmq
 
     def push(obj)
       puts "#队列：#{self.name}入队：#{obj}"
-      self.queue.push(obj)
+      # 添加消息的到期时刻
+      self.queue.push(obj.merge('expire' => (Time.now + obj['ttl'] / 1000.0).to_f)) if obj['ttl']
       puts "入队后队列长度:#{self.queue.length}"
       puts "当前clients:#{self.clients}"
       self.send_to_consumer
@@ -48,6 +49,11 @@ module Catmq
 
     def pop
       obj = self.queue.pop(true)
+      # 如果消息过期了，则递归出队下一个消息
+      if obj['expire'] && (obj['expire'] < Time.now.to_f)
+        p "#{obj}消息过期"
+        return self.pop
+      end
       puts "#队列：#{self.name}出队：#{obj}"
       obj
     end

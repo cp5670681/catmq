@@ -9,12 +9,15 @@ module Catmq
       @socket = socket
     end
 
-    def send_message(payload, router: '')
+    # @param [Integer] ttl 过期时间，单位毫秒
+    def send_message(payload, router: '', ttl: nil)
       data = {
         # uuid有bug，偶尔会报错，转而使用时间戳
+        # https://github.com/assaf/uuid/issues/28
         uuid: (::UUID.new.generate rescue Time.now.to_f.to_s),
         router: router,
-        body: payload
+        body: payload,
+        ttl: ttl
       }.to_json
       @socket.write("#{data}#{SPLIT}")
       'ok'

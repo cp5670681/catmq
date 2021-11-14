@@ -19,12 +19,12 @@ module Catmq
       # end
     end
 
-    def publish(routing_key, message)
+    def publish(routing_key, message, ttl: nil)
       data = {
         routing_key: routing_key,
         message: message
       }
-      ::Catmq::Agreement.new(@socket).send_message(data, router: 'publish')
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'publish', ttl: ttl)
     end
 
     def create_exchange(type, name)
