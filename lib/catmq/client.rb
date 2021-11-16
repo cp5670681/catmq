@@ -35,6 +35,14 @@ module Catmq
       ::Catmq::Agreement.new(@socket).send_message(data, router: 'create_exchange')
     end
 
+    def create_queue(name, ttl: nil)
+      data = {
+        name: name,
+        ttl: ttl
+      }
+      ::Catmq::Agreement.new(@socket).send_message(data, router: 'create_queue')
+    end
+
     def bind_exchange(name)
       data = {
         name: name

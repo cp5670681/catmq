@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'catmq'
 
 client = Catmq::Client.new
+client.create_queue('queue1', ttl: 10000)
 client.create_exchange('direct', 'exchange1')
 client.exchange_bind_queue('exchange1', 'queue1', 'key1')
 client.bind_exchange('exchange1')

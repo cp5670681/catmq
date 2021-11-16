@@ -21,6 +21,11 @@ module Catmq
           queue.push(res)
         end
       end
+      router 'create_queue' do |socket, res|
+        p 'create_queue'
+        params = res['body']
+        Catmq::Queue.new(params['name'], ttl: params['ttl'])
+      end
       router 'bind_queue' do |socket, res|
         p 'bind_queue'
         params = res['body']
