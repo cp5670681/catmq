@@ -4,8 +4,10 @@ require 'catmq/queue'
 require 'catmq/exchange'
 require 'catmq/client'
 require 'catmq/agreement'
+require 'catmq/container'
+require 'catmq/container/queue'
+require 'catmq/errors'
 
 module Catmq
-  class Error < StandardError; end
   # Your code goes here...
 end

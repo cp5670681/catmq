@@ -22,7 +22,7 @@ module Catmq
       # 创建相同的队列时，返回之前的队列
       return self.class.queues[name] if self.class.queues[name]
       self.name = name
-      self.queue = ::Queue.new
+      self.queue = ::Catmq::Container::Queue.new
       # 当前队列连接了哪些客户端
       self.clients = []
       # 记录队列名和队列的键值对关系
@@ -52,7 +52,7 @@ module Catmq
           break
         end
       end
-    rescue ThreadError => e
+    rescue ::Catmq::QueueEmptyError => e
       p "队列为空#{e}"
     end
 
@@ -77,7 +77,7 @@ module Catmq
     end
 
     def pop
-      obj = self.queue.pop(true)
+      obj = self.queue.pop
       puts obj
       # 如果消息过期了，则递归出队下一个消息
       if obj['expire'] && (obj['expire'] < Time.now.to_f)
@@ -105,7 +105,7 @@ module Catmq
         obj.delete('expire')
         self.class.dlx_queue.push(obj)
       end
-    rescue ThreadError => e
+    rescue ::Catmq::QueueEmptyError => e
       p "队列为空#{e}，清理完毕"
     end
 
