@@ -10,6 +10,8 @@ module Catmq
     end
 
     # 生产者发消息
+    # @param [Hash] payload 消息参数
+    # @param [String] router 消息路由
     # @param [Integer] ttl 过期时间，单位毫秒
     def send_message(payload, router: '', ttl: nil)
       data = {
